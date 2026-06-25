@@ -1,0 +1,1187 @@
+ <!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMRE OYUN</title>
+    <style>
+        :root {
+            --primary-color: #ff4757;
+            --secondary-color: #2ed573;
+            --bg-color: #1e272e;
+            --panel-bg: #2f3542;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        header {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        h1 {
+            color: #ffa502;
+            text-shadow: 0 0 10px rgba(255, 165, 0, 0.4);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+            font-size: 2.8rem;
+        }
+
+        .category-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .category-btn {
+            background: #4b5563;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active, .category-btn:hover {
+            background: #ffa502;
+            color: black;
+        }
+
+        #nav-menu {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            background: var(--panel-bg);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 2px solid #57606f;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .menu-btn {
+            background: #747d8c;
+            border: none;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px 18px;
+            border-radius: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 3px 0 #57606f;
+        }
+
+        .menu-btn.active, .menu-btn:hover {
+            background-color: #ff7f50;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #eccc68;
+        }
+
+        .game-container {
+            display: none;
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 4px solid #747d8c;
+            flex-direction: column;
+            align-items: center;
+            min-width: 360px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .game-container.active-game {
+            display: flex;
+        }
+
+        .ui-panel {
+            display: flex;
+            gap: 20px;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 20px;
+            border-radius: 15px;
+        }
+
+        .audio-toggle-btn {
+            background: #ff4757;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            transition: background 0.2s;
+        }
+        .audio-toggle-btn.muted {
+            background: #2ed573;
+        }
+
+        /* --- ARABA SPINNER --- */
+        .garage-selector { display: flex; gap: 6px; margin-bottom: 20px; background: #57606f; padding: 8px; border-radius: 10px; flex-wrap: wrap; justify-content: center;}
+        .garage-btn { background: #2f3542; color: white; border: 1px solid #747d8c; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
+        .garage-btn.selected { background: #ffa502; color: black; }
+        .gauge-container { position: relative; width: 200px; height: 110px; margin-bottom: 5px; overflow: hidden; }
+        .gauge-arc { position: absolute; width: 200px; height: 200px; border: 6px solid #333; border-top-color: #ffa502; border-left-color: #ffa502; border-radius: 50%; box-sizing: border-box; transform: rotate(-45deg); }
+        .gauge-needle { position: absolute; bottom: 0; left: 50%; width: 4px; height: 90px; background-color: #ff4d4d; border-radius: 2px; transform-origin: bottom center; transform: translateX(-50%) rotate(-90deg); }
+        .gauge-center { position: absolute; bottom: -10px; left: 50%; width: 20px; height: 20px; background: #fff; border: 3px solid #ff4d4d; border-radius: 50%; transform: translateX(-50%); }
+        .gauge-value { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 1.4rem; font-weight: bold; color: #00ffff; }
+        .speed-control-box { background: #57606f; border: 1px solid #747d8c; padding: 8px 12px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+        .speed-control-box input { width: 50px; background: #111; border: 1px solid #ffa502; color: #fff; padding: 4px; border-radius: 4px; text-align: center; }
+        .wheel-wrapper { width: 170px; height: 170px; border-radius: 50%; border: 4px solid #ffa502; background-color: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        #car-logo-img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; padding: 10px; box-sizing: border-box; }
+
+        /* --- SÜPER SAVAŞ --- */
+        .battle-container { width: 750px; display: flex; flex-direction: column; gap: 10px; }
+        .battle-header { display: flex; justify-content: space-between; align-items: center; background: #57606f; padding: 10px 15px; border-radius: 8px; font-weight: bold; }
+        .save-load-panel { display: flex; gap: 5px; align-items: center; }
+        .save-load-panel button { background: #2f3542; color: #fff; border: 1px solid #747d8c; padding: 5px 12px; font-size: 0.85rem; border-radius: 15px; cursor: pointer; font-weight: bold; }
+        .save-load-panel button:hover { background: #ffa502; color: #000; }
+        .battle-arena { width: 100%; height: 250px; position: relative; border: 3px solid #555; border-radius: 8px; overflow: hidden; background: linear-gradient(to bottom, #1d2671, #c33764); transition: background 0.5s ease; }
+        .tower { position: absolute; bottom: 0; width: 70px; height: 160px; border: 4px solid #777; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 10px; box-sizing: border-box; z-index: 10; }
+        .player-tower { left: 10px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-color: #4a7bc7; }
+        .enemy-tower { right: 10px; background: linear-gradient(135deg, #7e2b2b, #b33939); border-color: #c74a4a; }
+        .tower-hp { background: rgba(0,0,0,0.85); padding: 3px 8px; font-size: 0.8rem; border-radius: 4px; color: #ff4d4d; font-weight: bold; }
+        .mine-node { position: absolute; bottom: 0; left: 110px; width: 50px; height: 40px; background: linear-gradient(0deg, #b8860b, #ffd700); border-radius: 10px 10px 0 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid #fff; z-index: 5; }
+        .entity { position: absolute; bottom: 5px; width: 35px; height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; font-size: 1.7rem; z-index: 8; }
+        .hp-bar { position: absolute; top: -15px; width: 30px; height: 5px; background: #555; border-radius: 2px; overflow: hidden; border: 1px solid #000; }
+        .hp-fill { height: 100%; background: #4dff4d; width: 100%; }
+        .battle-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .control-group { background: #57606f; padding: 10px; border-radius: 8px; }
+        .group-title { font-size: 0.9rem; color: #ffd700; margin-bottom: 8px; font-weight: bold; text-align: center; }
+        .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .spawn-btn, .upgrade-btn { background: #2f3542; color: white; border: 1px solid #747d8c; padding: 8px 6px; border-radius: 5px; cursor: pointer; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; font-weight: bold; }
+        .spawn-btn:hover, .upgrade-btn:hover { background: #ffa502; color: #000; }
+        .btn-cost { color: #ffd700; font-size: 0.7rem; margin-top: 2px; }
+
+        /* --- BALON PATLATMA --- */
+        .balloon-arena { width: 500px; height: 350px; background: linear-gradient(to bottom, #74b9ff, #81ecec); position: relative; border: 4px solid #747d8c; border-radius: 15px; overflow: hidden; }
+        .balloon { position: absolute; width: 50px; height: 65px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+        .balloon:after { content: "🎈"; }
+
+        /* --- BALIK TUTMA --- */
+        .fishing-layout { display: flex; flex-direction: column; align-items: center; width: 550px; gap: 10px; }
+        .fishing-info-header {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background: #23272a;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border: 1px solid #4f545c;
+        }
+        .fishing-info-header span {
+            background: #2f3542;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #747d8c;
+        }
+        .fishing-canvas-container { border: 4px solid #747d8c; border-radius: 15px; overflow: hidden; position: relative; }
+        #fishing-canvas { background: #2980b9; display: block; }
+        
+        .fishing-shop {
+            width: 100%;
+            background: #23272a;
+            border-radius: 12px;
+            padding: 10px;
+            border: 2px solid #ffa502;
+            box-sizing: border-box;
+        }
+        .shop-title {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ffa502;
+            margin-bottom: 8px;
+        }
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .shop-item {
+            background: #2f3542;
+            border: 1px solid #57606f;
+            border-radius: 6px;
+            padding: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .shop-item:hover {
+            background: #57606f;
+        }
+        .shop-item.selected {
+            border-color: #2ed573;
+            background: #1e372a;
+        }
+        .shop-item-name { color: #fff; }
+        .shop-item-cost { color: #ffd700; }
+        .repair-item {
+            grid-column: span 2;
+            justify-content: space-between;
+            background: #3a2222;
+            border-color: #ff4757;
+        }
+        .repair-item:hover { background: #4a2c2c; }
+
+        /* --- SAYI BÜYÜTME --- */
+        .math-board { display: flex; flex-direction: column; align-items: center; gap: 15px; width: 550px; }
+        .math-row { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; width: 100%; }
+        .math-box { background: #34495e; border: 2px solid #747d8c; border-radius: 8px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; }
+        .math-box:hover { background: #e67e22; transform: scale(1.05); }
+        .math-box.disabled { background: #1e272e; color: #57606f; border-color: #2f3542; pointer-events: none; }
+        .current-val-display { font-size: 2rem; font-weight: bold; color: #2ed573; margin: 10px 0; background: rgba(0,0,0,0.3); padding: 5px 25px; border-radius: 10px; border: 1px solid #2ed573; }
+
+        /* --- YILAN OYUNU --- */
+        .snake-panel { display: flex; flex-direction: column; align-items: center; background: #2f3542; padding: 15px; border-radius: 15px; }
+        #snake-canvas { background: #111; border: 4px solid #747d8c; border-radius: 10px; display: block; }
+
+        /* --- TUĞLA KIRMA OYUNU --- */
+        .brick-panel { display: flex; flex-direction: column; align-items: center; background: #2f3542; padding: 15px; border-radius: 15px; }
+        #brick-canvas { background: #1e1e24; border: 4px solid #747d8c; border-radius: 10px; display: block; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🧸 OMRE OYUN 🎈</h1>
+        <div class="category-container">
+            <button class="category-btn active" onclick="filterCategory('all', this)">🌐 Tümü</button>
+            <button class="category-btn" onclick="filterCategory('+13', this)">⚔️ +13</button>
+            <button class="category-btn" onclick="filterCategory('+7', this)">🐍 +7</button>
+            <button class="category-btn" onclick="filterCategory('+3/+5', this)">🎈 +3 / +5</button>
+        </div>
+    </header>
+
+    <div id="nav-menu">
+        <button class="menu-btn" data-cat="+13" onclick="switchGame('citroen')">🚗 Araba Spinner</button>
+        <button class="menu-btn" data-cat="+13" onclick="switchGame('super-savas')">⚔️ Süper Savaş</button>
+        <button class="menu-btn" data-cat="+3/+5" onclick="switchGame('balloon')">🎈 Balon Patlat</button>
+        <button class="menu-btn" data-cat="+13" onclick="switchGame('fishing')">🎣 Balık Tutma</button>
+        <button class="menu-btn" data-cat="+3/+5" onclick="switchGame('math')">🔢 Sayı Büyütme</button>
+        <button class="menu-btn" data-cat="+7" onclick="switchGame('snake')">🐍 Yılan Oyunu</button>
+        <button class="menu-btn" data-cat="+7" onclick="switchGame('brick')">🧱 Tuğla Kırma</button>
+    </div>
+
+    <div id="game-citroen" class="game-container">
+        <button id="car-audio-btn" class="audio-toggle-btn" onclick="toggleCarAudio()">🔊 Sesi Kapat</button>
+        <div class="garage-selector">
+            <button class="garage-btn" onclick="changeLogo(this, 'renault')">Renault</button>
+            <button class="garage-btn" onclick="changeLogo(this, 'hyundai')">Hyundai</button>
+            <button class="garage-btn" onclick="changeLogo(this, 'vw')">VW</button>
+            <button class="garage-btn" onclick="changeLogo(this, 'skoda')">Skoda</button>
+        </div>
+        <div class="gauge-container">
+            <div class="gauge-arc"></div>
+            <div id="gauge-needle" class="gauge-needle" style="transform: translateX(-50%) rotate(-90deg);"></div>
+            <div class="gauge-center"></div>
+            <div id="gauge-display" class="gauge-value">0 km/h</div>
+        </div>
+        <div class="speed-control-box">
+            <label>50 kmh'de Tur/Sn Hızı:</label>
+            <input type="number" id="turns-input" value="20">
+        </div>
+        <div class="ui-panel"><div>Skor: <span id="citroen-score" style="color: #ffa502;">0</span> m</div></div>
+        <div id="wheel-container" class="wheel-wrapper">
+            <img id="car-logo-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 250' fill='%23eb0a1e'><path d='M200 15C108.6 15 34.5 59.8 34.5 115c0 55.2 74.1 100 165.5 100s165.5-44.8 165.5-100C365.5 59.8 291.4 15 200 15zm0 21.4c75.8 0 137.9 34.1 143.6 77.1H254c-7.2-22.3-29.6-38.6-54-38.6s-46.8 16.3-54 38.6H56.4c5.7-43 67.8-77.1 143.6-77.1zm-32.9 98.5c0-19.4 14.8-35.1 32.9-35.1s32.9 15.7 32.9 35.1-14.8 35.1-32.9 35.1-32.9-15.7-32.9-35.1zm-89.8 0h52.1c4.5 15.1 16.7 27 31.9 32.2-41.9-6.3-76.3-18.7-84-32.2zm245.4 32.2c15.2-5.2 27.4-17.1 31.9-32.2h52.1c-7.7 13.5-42.1 25.9-84 32.2z'/></svg>">
+        </div>
+    </div>
+
+    <div id="game-super-savas" class="game-container">
+        <div class="battle-container">
+            <div class="battle-header">
+                <div>Altın: <span id="bs-gold" style="color:#ffd700;">400</span> 🪙</div>
+                <div id="bs-zone-display" style="color:#eccc68; font-size:1.1rem;">🏔️ Buzlu Dağlar</div>
+                <div>Lv: <span id="bs-level" style="color:#ff4d4d;">1 / 100</span></div>
+                <div class="save-load-panel">
+                    <button id="battle-audio-btn" class="audio-toggle-btn" style="margin-bottom:0; margin-right:5px;" onclick="toggleBattleAudio()">🔊 Sesi Kapat</button>
+                    <button onclick="saveGameManual()">💾 Oyunu Kaydet</button>
+                    <button onclick="loadGameManual()">📂 Kayıttan Yükle</button>
+                </div>
+            </div>
+            <div id="battle-arena" class="battle-arena">
+                <div class="mine-node">⛏️</div>
+                <div id="player-tower" class="tower player-tower"><span class="tower-hp" id="p-tower-hp">50/50</span></div>
+                <div id="enemy-tower" class="tower enemy-tower"><span class="tower-hp" id="e-tower-hp">50/50</span></div>
+            </div>
+            <div class="battle-controls">
+                <div class="control-group">
+                    <div class="group-title">Birlik Çağır</div>
+                    <div class="btn-grid">
+                        <button class="spawn-btn" onclick="spawnUnit('miner')">👷 Madenci <span class="btn-cost">40 Altın</span></button>
+                        <button class="spawn-btn" onclick="spawnUnit('swordsman')">🗡️ Kılıçlı <span class="btn-cost">50 Altın</span></button>
+                        <button class="spawn-btn" onclick="spawnUnit('archer')">🏹 Okçu <span class="btn-cost">60 Altın</span></button>
+                        <button class="spawn-btn" id="btn-spawn-knight" onclick="spawnUnit('knight')">🔱 Mızraklı <span class="btn-cost">100 Altın</span></button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="group-title">Yükseltmeler (+10 Tüm Değerler)</div>
+                    <div class="btn-grid">
+                        <button class="upgrade-btn" onclick="upgradeStat('tower')">🏰 Kule Geliştir <span class="btn-cost" id="c-up-tower">40 Altın</span></button>
+                        <button class="upgrade-btn" onclick="upgradeStat('swordsman')">🗡️ Kılıçlı Geliştir <span class="btn-cost" id="c-up-swordsman">50 Altın</span></button>
+                        <button class="upgrade-btn" onclick="upgradeStat('archer')">🏹 Okçu Geliştir <span class="btn-cost" id="c-up-archer">60 Altın</span></button>
+                        <button class="upgrade-btn" id="btn-up-knight" onclick="upgradeStat('knight')">🔱 Mızraklı Geliştir <span class="btn-cost" id="c-up-knight">100 Altın</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-balloon" class="game-container">
+        <div class="ui-panel"><div>Skor: <span id="balloon-score" style="color: #ff4757;">0 / 50</span> 🎈</div></div>
+        <div id="balloon-arena" class="balloon-arena"></div>
+        <button class="menu-btn" onclick="startBalloonGame()" style="margin-top:10px; background:#2ed573;">Oyunu Başlat</button>
+    </div>
+
+    <div id="game-fishing" class="game-container">
+        <div class="fishing-layout">
+            <div class="fishing-info-header">
+                <span id="fish-ui-gold">Altın: 0 🪙</span>
+                <span id="fish-ui-rod">Olta: Yok</span>
+                <span id="fish-ui-durability">Tekne Durumu: Sağlam ✅</span>
+            </div>
+            <div class="fishing-canvas-container">
+                <canvas id="fishing-canvas" width="500" height="260"></canvas>
+            </div>
+            <button id="fish-action-btn" class="menu-btn" onclick="dropHook()" style="width:100%; background:#2ed573; font-size:1.1rem; padding:12px;">🎣 Oltayı Fırlat!</button>
+            
+            <div class="fishing-shop">
+                <div class="shop-title">🪝 BALIKÇI MAĞAZASI</div>
+                <div class="shop-grid">
+                    <div class="shop-item" id="rod-item-basic" onclick="buyRod('basic')">
+                        <span class="shop-item-name">Olta (100 Atış)</span>
+                        <span class="shop-item-cost">30 Altın</span>
+                    </div>
+                    <div class="shop-item" id="rod-item-bronze" onclick="buyRod('bronze')">
+                        <span class="shop-item-name">Bronz Olta (120 Atış)</span>
+                        <span class="shop-item-cost">40 Altın</span>
+                    </div>
+                    <div class="shop-item" id="rod-item-silver" onclick="buyRod('silver')">
+                        <span class="shop-item-name">Gümüş Olta (160 Atış)</span>
+                        <span class="shop-item-cost">50 Altın</span>
+                    </div>
+                    <div class="shop-item" id="rod-item-gold" onclick="buyRod('gold')">
+                        <span class="shop-item-name">Altın Olta (200 Atış)</span>
+                        <span class="shop-item-cost">60 Altın</span>
+                    </div>
+                    <div class="shop-item repair-item" onclick="buyRepairKit()">
+                        <span class="shop-item-name">🔧 Tekne Tamir Seti</span>
+                        <span class="shop-item-cost">20 Altın</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-math" class="game-container">
+        <div class="math-board">
+            <div class="ui-panel"><div>Genel Puan: <span id="math-score" style="color:#eccc68;">0</span> ⭐</div></div>
+            <div class="current-val-display" id="math-current-val">1</div>
+            <div style="font-size:0.9rem; color:#ffd700; font-weight:bold;">ÜST SATIR (Seçim Yap)</div>
+            <div class="math-row" id="math-top-row"></div>
+            <div style="font-size:0.9rem; color:#ffd700; font-weight:bold; margin-top:10px;">ALT SATIR (Seçim Yap)</div>
+            <div class="math-row" id="math-bottom-row"></div>
+            <button class="menu-btn" onclick="startMathGame()" style="margin-top:15px; background:#2ed573;">🔄 Yeni Oyuna Başla</button>
+        </div>
+    </div>
+
+    <div id="game-snake" class="game-container">
+        <div class="snake-panel">
+            <div class="ui-panel"><div>Skor: <span id="snake-score" style="color:#2ed573;">0</span> 🍏</div></div>
+            <canvas id="snake-canvas" width="300" height="300"></canvas>
+            <button class="menu-btn" onclick="initSnakeGame()" style="margin-top:12px; background:#2ed573;">🔄 Oyunu Yeniden Başlat</button>
+        </div>
+    </div>
+
+    <div id="game-brick" class="game-container">
+        <div class="brick-panel">
+            <div class="ui-panel"><div>Skor: <span id="brick-score" style="color:#ffa502;">0</span> ⭐</div></div>
+            <canvas id="brick-canvas" width="400" height="300"></canvas>
+            <button class="menu-btn" onclick="initBrickGame()" style="margin-top:12px; background:#2ed573;">🔄 Yeniden Başlat</button>
+        </div>
+    </div>
+
+    <script>
+        function filterCategory(catName, btnElement) {
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            document.querySelectorAll('#nav-menu .menu-btn').forEach(btn => {
+                if (catName === 'all' || btn.getAttribute('data-cat') === catName) {
+                    btn.style.display = "inline-block";
+                } else {
+                    btn.style.display = "none";
+                }
+            });
+        }
+
+        let globalSave = { battleState: null };
+        let carAudioMuted = false;
+        let battleAudioMuted = false;
+
+        function toggleCarAudio() {
+            carAudioMuted = !carAudioMuted;
+            const btn = document.getElementById('car-audio-btn');
+            if (carAudioMuted) {
+                btn.textContent = "🔇 Sesi Aç";
+                btn.classList.add('muted');
+                if (v8Gain) v8Gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            } else {
+                btn.textContent = "🔊 Sesi Kapat";
+                btn.classList.remove('muted');
+                if (v8Gain && kmhSpeed > 0) v8Gain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+            }
+        }
+
+        function toggleBattleAudio() {
+            battleAudioMuted = !battleAudioMuted;
+            const btn = document.getElementById('battle-audio-btn');
+            if (battleAudioMuted) {
+                btn.textContent = "🔇 Sesi Aç";
+                btn.classList.add('muted');
+            } else {
+                btn.textContent = "🔊 Sesi Kapat";
+                btn.classList.remove('muted');
+            }
+        }
+
+        let audioCtx = null;
+        let v8Oscillator = null;
+        let v8Gain = null;
+        let musicInterval = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function startV8Sound() {
+            initAudio();
+            if (v8Oscillator) return;
+            v8Oscillator = audioCtx.createOscillator();
+            v8Gain = audioCtx.createGain();
+            v8Oscillator.type = 'sawtooth';
+            v8Oscillator.frequency.setValueAtTime(110, audioCtx.currentTime); 
+            let v8Filter = audioCtx.createBiquadFilter();
+            v8Filter.type = 'peaking';
+            v8Filter.frequency.setValueAtTime(180, audioCtx.currentTime);
+            v8Filter.Q.setValueAtTime(12, audioCtx.currentTime);
+            v8Oscillator.connect(v8Filter);
+            v8Filter.connect(v8Gain);
+            v8Gain.connect(audioCtx.destination);
+            v8Gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+            v8Oscillator.start();
+        }
+
+        function updateV8Sound(speed) {
+            if (!v8Gain || !v8Oscillator) return;
+            if (carAudioMuted) {
+                v8Gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                return;
+            }
+            if (speed > 0) {
+                v8Oscillator.frequency.setValueAtTime(110 + (speed * 0.45), audioCtx.currentTime);
+                v8Gain.gain.linearRampToValueAtTime(0.22, audioCtx.currentTime + 0.05);
+            } else {
+                v8Gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            }
+        }
+
+        function stopV8Sound() {
+            if (v8Oscillator) {
+                try { v8Oscillator.stop(); } catch(e){}
+                v8Oscillator.disconnect();
+                v8Oscillator = null;
+            }
+        }
+
+        let noteIndex = 0;
+        function startBattleMusic() {
+            initAudio();
+            if (musicInterval) clearInterval(musicInterval);
+            const battleMelody = [110, 110, 130, 110, 146, 146, 130, 110, 165, 165, 146, 130, 110, 110, 98, 110];
+            musicInterval = setInterval(() => {
+                if (!audioCtx || battleAudioMuted) return;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(battleMelody[noteIndex % battleMelody.length], audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.22);
+                noteIndex++;
+            }, 220);
+        }
+
+        function stopBattleMusic() {
+            if (musicInterval) { clearInterval(musicInterval); musicInterval = null; }
+        }
+
+        function saveGameManual() {
+            globalSave.battleState = {
+                gold: gameState.gold, level: gameState.level, pMaxHp: gameState.pMaxHp, pHp: gameState.pHp, eMaxHp: gameState.eMaxHp, eHp: gameState.eHp,
+                swordsmanBonusDmg: gameState.swordsmanBonusDmg, swordsmanBonusHp: gameState.swordsmanBonusHp, swordsmanBonusGold: gameState.swordsmanBonusGold,
+                archerBonusDmg: gameState.archerBonusDmg, archerBonusHp: gameState.archerBonusHp, archerBonusGold: gameState.archerBonusGold,
+                knightBonusDmg: gameState.knightBonusDmg, knightBonusHp: gameState.knightBonusHp, knightBonusGold: gameState.knightBonusGold,
+                towerBonusHp: gameState.towerBonusHp,
+                costTower: gameState.costTower, costSwordsman: gameState.costSwordsman, costArcher: gameState.costArcher, costKnight: gameState.costKnight
+            };
+            localStorage.setItem('omreOyun_globalSave', JSON.stringify(globalSave));
+        }
+
+        function autoSave() { saveGameManual(); }
+
+        function loadGameManual(silent = false) {
+            let data = localStorage.getItem('omreOyun_globalSave');
+            if(data) {
+                globalSave = JSON.parse(data);
+                if(globalSave.battleState) { gameState = globalSave.battleState; }
+                clearAllUnits();
+                updateBattleUI();
+                if(!silent) alert("Kayıtlı oyununuz başarıyla yüklendi! 📂");
+            } else {
+                if(!silent) alert("Kayıtlı bir oyun bulunamadı!");
+            }
+        }
+
+        function clearAllUnits() {
+            [...playerUnits, ...enemyUnits].forEach(u => { let d = document.getElementById('unit-'+u.id); if(d) d.remove(); });
+            playerUnits = []; enemyUnits = [];
+        }
+
+        function switchGame(gameId) {
+            document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active-game'));
+            document.querySelectorAll('.menu-btn').forEach(el => el.classList.remove('active'));
+            const targetContainer = document.getElementById(`game-${gameId}`);
+            if(targetContainer) targetContainer.classList.add('active-game');
+            if(window.event && window.event.target) window.event.target.classList.add('active');
+
+            clearInterval(battleLoopInterval);
+            clearInterval(balloonInterval);
+            clearInterval(snakeInterval);
+            clearInterval(brickInterval);
+            cancelAnimationFrame(fAnimFrame);
+            stopBattleMusic();
+            stopV8Sound();
+            document.getElementById('balloon-arena').innerHTML = "";
+
+            if(gameId === 'super-savas') { startBattleGame(); startBattleMusic(); }
+            if(gameId === 'citroen') { startV8Sound(); }
+            if(gameId === 'fishing') { initFishingGame(); }
+            if(gameId === 'math') { startMathGame(); }
+            if(gameId === 'snake') { initSnakeGame(); }
+            if(gameId === 'brick') { initBrickGame(); }
+            if(gameId !== 'citroen') stopPressing();
+        }
+
+        // ================= CAR CLICKER MOTORU =================
+        let clickCount = 0; let kmhSpeed = 0; let currentRotation = 0; let isPressing = false; let pressInterval; let lastTime = performance.now();
+        const wheelContainer = document.getElementById('wheel-container');
+        const logoImg = document.getElementById('car-logo-img');
+        const needle = document.getElementById('gauge-needle');
+        const gaugeDisplay = document.getElementById('gauge-display');
+        const turnsInput = document.getElementById('turns-input');
+
+        function changeLogo(btn, key) {
+            const carLogos = { 
+                renault: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa16DbfDwWTf-KNcjeIMmEQ1_RAdNFT-7yZfmrV3CaSA&s=10", 
+                hyundai: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSk_yBir63vrClyNAJjnz07TZ7WXCERqgv4IXmyV8-WGA&s=10", 
+                vw: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkXeZwZS_7vmfrYQnmVuQVtqDKd1TyJV8NVzR8NgE5ag&s=10",
+                skoda: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTm3R9Gdhonph_jILbp1fJq_-ly5Z4eWyrTrUgfe2fB1g&s"
+            };
+            document.querySelectorAll('.garage-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if(carLogos[key]) logoImg.src = carLogos[key];
+        }
+        function startPressing(e) {
+            e.preventDefault(); initAudio(); startV8Sound(); isPressing = true;
+            pressInterval = setInterval(() => {
+                if(isPressing) {
+                    kmhSpeed += 6.5; if (kmhSpeed > 600) kmhSpeed = 600;
+                    clickCount += Math.floor(kmhSpeed / 10) + 1;
+                    document.getElementById('citroen-score').textContent = clickCount;
+                }
+            }, 30);
+        }
+        function stopPressing() { isPressing = false; clearInterval(pressInterval); }
+        if(wheelContainer) {
+            wheelContainer.addEventListener('mousedown', startPressing);
+            wheelContainer.addEventListener('touchstart', startPressing);
+        }
+        window.addEventListener('mouseup', stopPressing);
+        window.addEventListener('touchend', stopPressing);
+
+        function animateWheel(currentTime) {
+            let deltaTime = (currentTime - lastTime) / 1000; lastTime = currentTime;
+            if (kmhSpeed > 0 && wheelContainer) {
+                let userTargetTurns = parseFloat(turnsInput.value) || 20;
+                let degreesPerSecond = (kmhSpeed / 50) * (userTargetTurns * 360);
+                currentRotation += degreesPerSecond * deltaTime;
+                wheelContainer.style.transform = `scale(${isPressing ? 1.05 : 1}) rotate(${currentRotation}deg)`;
+                if (!isPressing) { kmhSpeed -= 3.5; if(kmhSpeed < 0) kmhSpeed = 0; }
+            }
+            updateV8Sound(kmhSpeed);
+            if(needle && gaugeDisplay) {
+                let needleAngle = -90 + (kmhSpeed / 600) * 180;
+                needle.style.transform = `translateX(-50%) rotate(${needleAngle}deg)`;
+                gaugeDisplay.textContent = `${Math.floor(kmhSpeed)} km/h`;
+            }
+            requestAnimationFrame(animateWheel);
+        }
+        requestAnimationFrame(animateWheel);
+
+        // ================= SÜPER SAVAŞ MOTORU (YENİ DENGELİ SÜRÜM) =================
+        let gameState = {
+            gold: 400, level: 1, pMaxHp: 50, pHp: 50, eMaxHp: 50, eHp: 50,
+            swordsmanBonusDmg: 0, swordsmanBonusHp: 0, swordsmanBonusGold: 0,
+            archerBonusDmg: 0, archerBonusHp: 0, archerBonusGold: 0,
+            knightBonusDmg: 0, knightBonusHp: 0, knightBonusGold: 0,
+            towerBonusHp: 0,
+            costTower: 40, costSwordsman: 50, costArcher: 60, costKnight: 100
+        };
+
+        // 10 Bölüm ve her biri 10 kısımdan oluşan 100 Seviyelik Harita Listesi
+        const zoneNames = [
+            "Buzlu Dağlar", "Uzun Bayır", "Lavlı Dağ", "Kentte Salgın", 
+            "Kanalizasyon", "Buzullar", "Büyük Orman", "Bataklık", 
+            "Gökyüzü Şehri", "Çöl"
+        ];
+
+        let playerUnits = []; let enemyUnits = []; let unitIdCounter = 0; let battleLoopInterval = null;
+
+        function startBattleGame() {
+            if(battleLoopInterval) clearInterval(battleLoopInterval);
+            battleLoopInterval = setInterval(battleLoop, 40);
+            updateBattleUI();
+        }
+
+        function updateBattleUI() {
+            document.getElementById('bs-gold').textContent = gameState.gold;
+            document.getElementById('bs-level').textContent = `${gameState.level} / 100`;
+            
+            // 10 bölümlük yeni isimlendirme mantığı (Her 10 seviyede bir isim değişir)
+            let zoneIdx = Math.min(Math.floor((gameState.level - 1) / 10), zoneNames.length - 1);
+            document.getElementById('bs-zone-display').textContent = `🏔️ ${zoneNames[zoneIdx]}`;
+            
+            document.getElementById('p-tower-hp').textContent = `${gameState.pHp}/${gameState.pMaxHp}`;
+            document.getElementById('e-tower-hp').textContent = `${gameState.eHp}/${gameState.eMaxHp}`;
+            
+            document.getElementById('c-up-tower').textContent = `${gameState.costTower} Altın`;
+            document.getElementById('c-up-swordsman').textContent = `${gameState.costSwordsman} Altın`;
+            document.getElementById('c-up-archer').textContent = `${gameState.costArcher} Altın`;
+            document.getElementById('c-up-knight').textContent = `${gameState.costKnight} Altın`;
+        }
+
+        function spawnUnit(type, isEnemy = false) {
+            // Çağırma fiyatları tamamen sabittir
+            let cost = type==='miner'?40 : type==='swordsman'?50 : type==='archer'?60 : 100;
+            if(!isEnemy && gameState.gold < cost) return;
+            if(!isEnemy) { gameState.gold -= cost; updateBattleUI(); }
+            
+            let id = unitIdCounter++;
+            let u = {
+                id: id, type: type, isEnemy: isEnemy, x: isEnemy ? 670 : 80,
+                maxHp: type==='miner'?40 : type==='swordsman'?60 : type==='archer'?80 : 100,
+                dmg: type==='miner'?0 : type==='swordsman'?5 : type==='archer'?10 : 15,
+                goldPerHit: type==='miner'?10 : type==='swordsman'?30 : type==='archer'?60 : 120,
+                speed: type==='miner'?1.6 : type==='swordsman'?2.2 : type==='archer'?1.8 : 2.6,
+                range: type==='archer'?150 : 25,
+                lastAttackTime: 0, // Spam engelleme zaman damgası
+                goldTimer: type==='miner'? 0 : null
+            };
+
+            if(!isEnemy) {
+                if(type === 'swordsman') { u.maxHp += gameState.swordsmanBonusHp; u.dmg += gameState.swordsmanBonusDmg; u.goldPerHit += gameState.swordsmanBonusGold; }
+                if(type === 'archer') { u.maxHp += gameState.archerBonusHp; u.dmg += gameState.archerBonusDmg; u.goldPerHit += gameState.archerBonusGold; }
+                if(type === 'knight') { u.maxHp += gameState.knightBonusHp; u.dmg += gameState.knightBonusDmg; u.goldPerHit += gameState.knightBonusGold; }
+            } else {
+                let scale = 1 + (gameState.level - 1) * 0.12;
+                u.maxHp = Math.floor(u.maxHp * scale); 
+                u.dmg = Math.floor(u.dmg * scale);
+            }
+            
+            u.hp = u.maxHp;
+            let div = document.createElement('div');
+            div.id = 'unit-' + id; div.className = 'entity';
+            div.innerHTML = `<div class="hp-bar"><div id="hpfill-${id}" class="hp-fill"></div></div>` + 
+                            (type==='miner'?'👷':type==='swordsman'?'🗡️':type==='archer'?'🏹':'🔱');
+            if(isEnemy) div.style.transform = "scaleX(-1)";
+            document.getElementById('battle-arena').appendChild(div);
+            if(isEnemy) enemyUnits.push(u); else playerUnits.push(u);
+        }
+
+        function upgradeStat(stat) {
+            let cost = stat==='tower'?gameState.costTower : stat==='swordsman'?gameState.costSwordsman : stat==='archer'?gameState.costArcher : gameState.costKnight;
+            if(gameState.gold < cost) return;
+            gameState.gold -= cost;
+
+            // Bir geliştirme yapıldığında o birimin tüm değerleri +10 artar (Çağırma fiyatı hariç)
+            if(stat === 'tower') {
+                gameState.towerBonusHp += 10; gameState.pMaxHp += 10; gameState.pHp += 10;
+                gameState.costTower += 10;
+            } else if(stat === 'swordsman') {
+                gameState.swordsmanBonusHp += 10; gameState.swordsmanBonusDmg += 10; gameState.swordsmanBonusGold += 10;
+                gameState.costSwordsman += 10;
+            } else if(stat === 'archer') {
+                gameState.archerBonusHp += 10; gameState.archerBonusDmg += 10; gameState.archerBonusGold += 10;
+                gameState.costArcher += 10;
+            } else if(stat === 'knight') {
+                gameState.knightBonusHp += 10; gameState.knightBonusDmg += 10; gameState.knightBonusGold += 10;
+                gameState.costKnight += 10;
+            }
+            autoSave(); updateBattleUI();
+        }
+
+        let enemySpawnTimer = 0;
+        function battleLoop() {
+            if(!document.getElementById('game-super-savas').classList.contains('active-game')) return;
+            enemySpawnTimer++;
+            let spawnRate = Math.max(40, 160 - gameState.level * 2);
+            if(enemySpawnTimer >= spawnRate) {
+                enemySpawnTimer = 0; let r = Math.random();
+                if(gameState.level < 4) spawnUnit('swordsman', true);
+                else if(gameState.level < 10) spawnUnit(r > 0.4 ? 'swordsman' : 'archer', true);
+                else spawnUnit(r > 0.6 ? 'swordsman' : r > 0.2 ? 'archer' : 'knight', true);
+            }
+            
+            playerUnits.forEach(u => handleUnitLogic(u, enemyUnits, 670, true));
+            enemyUnits.forEach(u => handleUnitLogic(u, playerUnits, 80, false));
+            
+            playerUnits = playerUnits.filter(u => u.hp > 0); 
+            enemyUnits = enemyUnits.filter(u => u.hp > 0);
+            updateBattleUI();
+        }
+
+        function handleUnitLogic(u, targets, enemyTowerX, isPlayer) {
+            if(u.hp <= 0) return;
+            let now = performance.now();
+
+            // Madenciler asla kimseye saldıramaz, doğrudan altına gider
+            if(u.type === 'miner' && isPlayer) {
+                if(u.x < 115) { u.x += u.speed; } 
+                else { 
+                    if(now - u.lastAttackTime >= 1000) { // 1 saniyede bir kazma vurma ayarı
+                        u.lastAttackTime = now;
+                        gameState.gold += u.goldPerHit; 
+                    }
+                }
+                let d = document.getElementById('unit-'+u.id); if(d) d.style.left = u.x + 'px';
+                return;
+            }
+
+            // Düşmanlar madencilere saldıramaz, hedeflerden madencileri ayıkla
+            let validTargets = targets.filter(t => t.type !== 'miner');
+
+            let closestTarget = null; let minDist = 9999;
+            validTargets.forEach(t => {
+                let dist = isPlayer ? (t.x - u.x) : (u.x - t.x);
+                if(dist >= 0 && dist < minDist) { minDist = dist; closestTarget = t; }
+            });
+
+            let distToTower = isPlayer ? (enemyTowerX - u.x) : (u.x - enemyTowerX);
+            let canAttackTower = distToTower <= u.range;
+
+            if(closestTarget && minDist <= u.range) {
+                // 1 saniye vurma beklemesi (Spam Engeli)
+                if(now - u.lastAttackTime >= 1000) {
+                    u.lastAttackTime = now;
+                    closestTarget.hp -= u.dmg;
+                    
+                    if(isPlayer) gameState.gold += u.goldPerHit;
+
+                    let f = document.getElementById(`hpfill-${closestTarget.id}`);
+                    if(f) f.style.width = Math.max(0, (closestTarget.hp / closestTarget.maxHp)*100) + '%';
+                    if(closestTarget.hp <= 0) {
+                        let ed = document.getElementById('unit-'+closestTarget.id); if(ed) ed.remove();
+                    }
+                }
+            } else if(canAttackTower) {
+                // Kuleye vururken de 1 saniye bekleme kuralı geçerli
+                if(now - u.lastAttackTime >= 1000) {
+                    u.lastAttackTime = now;
+                    if(isPlayer) {
+                        gameState.eHp -= u.dmg;
+                        gameState.gold += u.goldPerHit;
+                        if(gameState.eHp <= 0) {
+                            gameState.level++;
+                            alert("Tebrikler! Yeni bölüme geçtiniz! 🎉"); // İstediğin yeni bölüm bildirim mesajı
+                            gameState.gold += 150;
+                            gameState.pMaxHp += 10; gameState.pHp = gameState.pMaxHp;
+                            gameState.eMaxHp = Math.floor(50 * (1 + gameState.level * 0.15)); gameState.eHp = gameState.eMaxHp;
+                            clearAllUnits(); autoSave();
+                        }
+                    } else {
+                        gameState.pHp -= u.dmg;
+                        if(gameState.pHp <= 0) {
+                            alert("Kuleniz yıkıldı! Oyun sıfırlandı.");
+                            gameState.level = 1; gameState.gold = 400;
+                            gameState.pMaxHp = 50; gameState.pHp = 50;
+                            gameState.eMaxHp = 50; gameState.eHp = 50;
+                            gameState.swordsmanBonusDmg=0; gameState.swordsmanBonusHp=0; gameState.swordsmanBonusGold=0;
+                            gameState.archerBonusDmg=0; gameState.archerBonusHp=0; gameState.archerBonusGold=0;
+                            gameState.knightBonusDmg=0; gameState.knightBonusHp=0; gameState.knightBonusGold=0; gameState.towerBonusHp=0;
+                            gameState.costTower=40; gameState.costSwordsman=50; gameState.costArcher=60; gameState.costKnight=100;
+                            clearAllUnits(); autoSave();
+                        }
+                    }
+                }
+            } else { 
+                u.x += isPlayer ? u.speed : -u.speed; 
+            }
+            let div = document.getElementById('unit-'+u.id); if(div) div.style.left = u.x + 'px';
+        }
+
+        // ================= BALON PATLATMA MOTORU =================
+        let balloonScore = 0; let balloonInterval = null;
+        function startBalloonGame() {
+            balloonScore = 0; document.getElementById('balloon-score').textContent = "0 / 50";
+            const arena = document.getElementById('balloon-arena'); arena.innerHTML = "";
+            clearInterval(balloonInterval);
+            balloonInterval = setInterval(() => {
+                if(!document.getElementById('game-balloon').classList.contains('active-game')) return;
+                createBalloon();
+            }, 750);
+        }
+        function createBalloon() {
+            const arena = document.getElementById('balloon-arena'); if(arena.children.length > 15) return;
+            const b = document.createElement('div'); b.className = 'balloon';
+            b.style.left = Math.random() * 440 + 'px'; b.style.bottom = '-70px';
+            let speed = Math.random() * 2 + 1.5;
+            b.onclick = () => {
+                balloonScore++; document.getElementById('balloon-score').textContent = balloonScore + " / 50"; b.remove();
+            };
+            arena.appendChild(b);
+            let bLoop = setInterval(() => {
+                let cur = parseFloat(b.style.bottom);
+                if(cur > 360) { b.remove(); clearInterval(bLoop); } else { b.style.bottom = (cur + speed) + 'px'; }
+            }, 25);
+        }
+
+        // ================= BALIK TUTMA MOTORU =================
+        let fCanvas, fCtx, fAnimFrame;
+        let hookY = 40;
+        let isCasting = false, isReturning = false, isBiting = false;
+        let fishCatchGold = 0;
+
+        const rodTypes = {
+            none: { name: "Yok", maxShots: 0, shotsLeft: 0 },
+            basic: { name: "Normal Olta", maxShots: 100, shotsLeft: 100, cost: 30 },
+            bronze: { name: "Bronz Olta", maxShots: 120, shotsLeft: 120, cost: 40 },
+            silver: { name: "Gümüş Olta", maxShots: 160, shotsLeft: 160, cost: 50 },
+            gold: { name: "Altın Olta", maxShots: 200, shotsLeft: 200, cost: 60 }
+        };
+        let currentRodKey = 'basic'; 
+        let boatBroken = false;
+
+        const fishLootTable = [
+            { name: "Hamsi", gold: 0.2, chance: 0.80 },
+            { name: "İstavrit", gold: 0.2, chance: 0.60 },
+            { name: "Çinekop", gold: 0.3, chance: 0.55 },
+            { name: "Kefal", gold: 0.5, chance: 0.50 },
+            { name: "Somon", gold: 0.8, chance: 0.30 },
+            { name: "Tahta", gold: 1.0, chance: 0.15 },
+            { name: "Çizme", gold: 1.5, chance: 0.15 },
+            { name: "Altın Yığını", gold: 10.0, chance: 0.10 },
+            { name: "Antik Parça", gold: 20.0, chance: 0.05 }
+        ];
+
+        function initFishingGame() {
+            fCanvas = document.getElementById('fishing-canvas');
+            fCtx = fCanvas.getContext('2d');
+            isCasting = false; isReturning = false; isBiting = false;
+            hookY = 40;
+            updateFishingUI();
+            if(fAnimFrame) cancelAnimationFrame(fAnimFrame);
+            fishingLoop();
+        }
+
+        function updateFishingUI() {
+            document.getElementById('fish-ui-gold').textContent = `Altın: ${fishCatchGold.toFixed(1)} 🪙`;
+            let rodInfo = rodTypes[currentRodKey];
+            if(currentRodKey === 'none') {
+                document.getElementById('fish-ui-rod').textContent = `Olta: Yok`;
+            } else {
+                document.getElementById('fish-ui-rod').textContent = `Olta: ${rodInfo.name} (${rodInfo.shotsLeft}/${rodInfo.maxShots})`;
+            }
+            document.getElementById('fish-ui-durability').textContent = boatBroken ? "Tekne Durumu: Hasarlı ❌" : "Tekne Durumu: Sağlam ✅";
+            
+            document.querySelectorAll('.shop-item').forEach(el => el.classList.remove('selected'));
+            if(currentRodKey !== 'none') {
+                let activeItem = document.getElementById(`rod-item-${currentRodKey}`);
+                if(activeItem) activeItem.classList.add('selected');
+            }
+
+            const btn = document.getElementById('fish-action-btn');
+            if (isBiting) {
+                btn.textContent = "💥 ÇEK! Ne Yakaladığını Gör!";
+                btn.style.background = "#ff4757";
+            } else if (isCasting || isReturning) {
+                btn.textContent = "⚓ Olta Dibe Doğru İniyor...";
+                btn.style.background = "#f1c40f";
+            } else {
+                btn.textContent = "🎣 Oltayı Fırlat!";
+                btn.style.background = "#2ed573";
+            }
+        }
+
+        function buyRod(key) {
+            let cost = rodTypes[key].cost;
+            if (fishCatchGold >= cost) {
+                fishCatchGold -= cost;
+                currentRodKey = key;
+                rodTypes[key].shotsLeft = rodTypes[key].maxShots;
+                updateFishingUI();
+            } else {
+                alert("Yetersiz Altın! Balık tutarak biriktirmelisin.");
+            }
+        }
+
+        function buyRepairKit() {
+            if(fishCatchGold >= 20) {
+                if(boatBroken) {
+                    fishCatchGold -= 20;
+                    boatBroken = false;
+                    updateFishingUI();
+                    alert("Tekneniz başarıyla tamir edildi! Tekrar balık tutabilirsiniz.");
+                } else {
+                    alert("Tekneniz zaten sağlam!");
+                }
+            } else {
+                alert("Tamir seti için 20 Altın gerekiyor!");
+            }
+        }
+
+        function dropHook() {
+            if(boatBroken) {
+                alert("Tekneniz kırık! Önce tamir kiti almalısınız.");
+                return;
+            }
+            if(currentRodKey === 'none' || rodTypes[currentRodKey].shotsLeft <= 0) {
+                alert("Kullanılabilir bir oltanız yok! Lütfen mağazadan bir olta satın edin.");
+                return;
+            }
+
+            if (isBiting) {
+                isBiting = false;
+                isReturning = true;
+                calculateCatch();
+                return;
+            }
+
+            if(!isCasting && !isReturning) {
+                isCasting = true;
+                rodTypes[currentRodKey].shotsLeft--;
+                updateFishingUI();
+            }
+        }
+
+        function calculateCatch() {
+            let candidates = fishLootTable.filter(f => Math.random() <= f.chance);
+            if(candidates.length > 0) {
+                let caught = candidates[Math.floor(Math.random() * candidates.length)];
+                fishCatchGold += caught.gold;
+                updateFishingUI();
+                alert(`Tebrikler! Denizden şunu çektiniz: ${caught.name} (+${caught.gold} Altın)`);
+            } else {
+                alert("Yem ziyan oldu, hiçbir şey yakalayamadın!");
+            }
+
+            if(rodTypes[currentRodKey].shotsLeft <= 0) {
+                alert(`Oltanızın kullanım ömrü bitti ve kırıldı!`);
+                currentRodKey = 'none';
+                updateFishingUI();
+            }
+        }
+
+        function fishingLoop() {
+            if(!document.getElementById('game-fishing').classList.contains('active-game')) return;
+            fCtx.clearRect(0,0,500,260);
+
+            fCtx.fillStyle = '#74b9ff'; fCtx.fillRect(0,0,500,40);
+            fCtx.fillStyle = '#2980b9'; fCtx.fillRect(0,40,500,220);
+
+            fCtx.font = "24px Arial"; 
+            fCtx.fillText("🚣", 235, 35);
+
+            if(isCasting) {
+                hookY += 3.5;
+                if(hookY >= 210) { 
+                    isCasting = false; 
+                    isBiting = true; 
+                    updateFishingUI();
+                }
+            }
+            if(isReturning) {
+                hookY -= 5;
+                if(hookY <= 40) {
+                    hookY = 40;
+                    isReturning = false;
+                    if(Math.random() < 0.001 && !boatBroken) {
+                        boatBroken = true;
+                        updateFishingUI();
+                        alert("🚨 Dikkat! Tekneniz hasar aldı ve kırıldı! Tamir seti kullanmalısınız.");
+                    }
+                    updateFishingUI();
+                }
+            }
+
+            fCtx.strokeStyle = '#fff'; 
+            fCtx.lineWidth = 1.5; 
+            fCtx.beginPath(); 
+            fCtx.moveTo(250,35); 
+            fCtx.lineTo(250,hookY); 
+            fCtx.stroke();
+
+            fCtx.font = "16px Arial"; 
+            if(isBiting) {
+                fCtx.fillText("✨🎈", 240, hookY+12); 
+            } else {
+                fCtx.fillText("🪝", 242, hookY+10);
+            }
+
+            fAnimFrame = requestAnimationFrame(fishingLoop);
+        }
+
+        // ================= SAYI BÜYÜTME MOTORU =================
+        let mathScore = 0; let mathCurrentVal = 1;
+        function startMathGame() {
+            mathScore = 0; mathCurrentVal = 1;
+            document.getElementById('math-score').textContent = "0";
+            document.getElementById('math-current-val').textContent = "1";
+            generateMathRows();
+        }
+        function generateMathRows() {
+            const topRow = document.getElementById('math-top-row'); const botRow = document.getElementById('math-bottom-row');
+            topRow.innerHTML = ""; botRow.innerHTML = ""; let base = mathCurrentVal;
+            for(let i=0; i<10; i++) {
+                let v1 = base + Math.floor(Math.random()*6)+1;
+                let b1 = document.createElement('div'); b1.className='math-box'; b1.textContent="+"+v1;
+                b1.onclick = () => selectMathBox(v1, b1); topRow.appendChild(b1);
+                let v2 = base * (Math.floor(Math.random()*2)+2);
+                let b2 = document.createElement('div'); b2.className='math-box'; b2.textContent="x"+v2;
+                b2.onclick = () => selectMathBox(v2, b2, true); botRow.appendChild(b2);
+            }
+        }
+        function selectMathBox(val, element, isMult = false) {
+            if(isMult) mathCurrentVal *= val; else mathCurrentVal += val;
+            mathScore += 10; document.getElementById('math-score').textContent = mathScore;
+            document.getElementById('math-current-val').textContent = mathCurrentVal;
+            element.classList.add('disabled');
+            if(document.querySelectorAll('.math-box.disabled').length >= 4) { generateMathRows(); }
+        }
+
+        // ================= YILAN OYUNU MOTORU =================
+        let snakeCanvas, snakeCtx, snakeInterval;
+        let snake, snakeFood, snakeDx, snakeDy, snakeScore;
+        function initSnakeGame() {
+            snakeCanvas = document.getElementById('snake-canvas'); snakeCtx = snakeCanvas.getContext('2d');
+            snake = [{x: 140, y: 140}, {x: 120, y: 140}, {x: 100, y: 140}];
+            snakeDx = 20; snakeDy = 0; snakeScore = 0; document.getElementById('snake-score').textContent = "0";
+            spawnSnakeFood();
+            window.removeEventListener('keydown', handleSnakeKey); window.addEventListener('keydown', handleSnakeKey);
+            clearInterval(snakeInterval); snakeInterval = setInterval(snakeLoop, 130);
+        }
+        function spawnSnakeFood() {
+            snakeFood = { x: Math.floor(Math.random() * 15) * 20, y: Math.floor(Math.random() * 15) * 20 };
+        }
+        function handleSnakeKey(e) {
+            if(e.key === 'ArrowUp' && snakeDy === 0) { snakeDx = 0; snakeDy = -20; }
+            if(e.key === 'ArrowDown' && snakeDy === 0) { snakeDx = 0; snakeDy = 20; }
+            if(e.key === 'ArrowLeft' && snakeDx === 0) { snakeDx = -20; snakeDy = 0; }
+            if(e.key === 'ArrowRight' && snakeDx === 0) { snakeDx = 20; snakeDy = 0; }
+        }
+        function snakeLoop() {
+            if(!document.getElementById('game-snake').classList.contains('active-game')) return;
+            const head = {x: snake[0].x + snakeDx, y: snake[0].y + snakeDy};
+            if(head.x < 0 || head.x >= 300 || head.y < 0 || head.y >= 300 || snake.some(s => s.x === head.x && s.y === head.y)) {
+                alert("Oyun Bitti! Skorunuz: " + snakeScore); initSnakeGame(); return;
+            }
+            snake.unshift(head);
+            if(head.x === snakeFood.x && head.y === snakeFood.y) {
+                snakeScore += 10; document.getElementById('snake-score').textContent = snakeScore; spawnSnakeFood();
+            } else { snake.pop(); }
+            snakeCtx.fillStyle = '#111'; snakeCtx.fillRect(0,0,300,300);
+            snakeCtx.fillStyle = '#2ed573'; snake.forEach(s => snakeCtx.fillRect(s.x, s.y, 18, 18));
+            snakeCtx.fillStyle = '#ff4757'; snakeCtx.fillRect(snakeFood.x, snakeFood.y, 18, 18);
+        }
+
+        // ================= TUĞLA KIRMA OYUNU MOTORU =================
+        let brickCanvas, brickCtx, brickInterval;
+        let paddleX, ballX, ballY, ballDx, ballDy, bricks, brickScore;
+        function initBrickGame() {
+            brickCanvas = document.getElementById('brick-canvas'); brickCtx = brickCanvas.getContext('2d');
+            paddleX = 160; ballX = 200; ballY = 200; ballDx = 3; ballDy = -3; brickScore = 0;
+            document.getElementById('brick-score').textContent = "0"; bricks = [];
+            for(let c=0; c<6; c++) { bricks[c] = []; for(let r=0; r<3; r++) { bricks[c][r] = { x: 0, y: 0, status: 1 }; } }
+            window.removeEventListener('keydown', handleBrickKey); window.addEventListener('keydown', handleBrickKey);
+            clearInterval(brickInterval); brickInterval = setInterval(brickLoop, 16);
+        }
+        function handleBrickKey(e) {
+            if(e.key === 'ArrowLeft') paddleX = Math.max(0, paddleX - 25);
+            if(e.key === 'ArrowRight') paddleX = Math.min(320, paddleX + 25);
+        }
+        function brickLoop() {
+            if(!document.getElementById('game-brick').classList.contains('active-game')) return;
+            ballX += ballDx; ballY += ballDy;
+            if(ballX < 6 || ballX > 394) ballDx = -ballDx;
+            if(ballY < 6) ballDy = -ballDy;
+            else if(ballY > 284) {
+                if(ballX > paddleX && ballX < paddleX + 80) { ballDy = -ballDy; } else { alert("Oyun Bitti!"); initBrickGame(); return; }
+            }
+            for(let c=0; c<6; c++) {
+                for(let r=0; r<3; r++) {
+                    let b = bricks[c][r];
+                    if(b.status === 1) {
+                        let bx = c*65+15; let by = r*25+30; b.x = bx; b.y = by;
+                        if(ballX > bx && ballX < bx+55 && ballY > by && ballY < by+18) {
+                            ballDy = -ballDy; b.status = 0; brickScore += 10; document.getElementById('brick-score').textContent = brickScore;
+                        }
+                    }
+                }
+            }
+            brickCtx.fillStyle = '#1e1e24'; brickCtx.fillRect(0,0,400,300);
+            brickCtx.fillStyle = '#ffa502'; brickCtx.fillRect(paddleX, 285, 80, 10);
+            brickCtx.fillStyle = '#fff'; brickCtx.beginPath(); brickCtx.arc(ballX, ballY, 6, 0, Math.PI*2); brickCtx.fill();
+            for(let c=0; c<6; c++) {
+                for(let r=0; r<3; r++) { if(bricks[c][r].status === 1) { brickCtx.fillStyle = '#ff4757'; brickCtx.fillRect(bricks[c][r].x, bricks[c][r].y, 55, 18); } }
+            }
+        }
+
+        window.onload = () => { switchGame('citroen'); };
+    </script>
+</body>
+</html>
